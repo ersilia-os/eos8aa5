@@ -1,18 +1,21 @@
-Identifier: ""
-Slug: ""
-Status: ""
-Title: ""
-Description: ""
-Mode: ""
+Identifier: eos8aa5
+Slug: kgpgt-embedding
+Status: In progress
+Title: Knowledge-guided pre-trained graph transformer
+Description: Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
+  This model reprsents a novel self-supervised learning framework for the representation
+  learning of molecular graphs, consisting of a novel graph transformer architecture,
+  LiGhT, and a knowledge-guided pre-training strategy.
+Mode: ''
 Task: []
 Input: []
-Input Shape: ""
+Input Shape: ''
 Output: []
 Output Type: []
-Output Shape: ""
-Interpretation: ""
-Tag: []
-Publication: ""
-Source Code: ""
-License: ""
-
+Output Shape: ''
+Interpretation: ''
+Tag:
+- Descriptor
+Publication: https://www.nature.com/articles/s41467-023-43214-1
+Source Code: https://github.com/lihan97/KPGT
+License: Apache-2.0

@@ -6,14 +6,14 @@ Description: Neural fingerprints (embeddings) based on a knowledge-guided graph 
   This model reprsents a novel self-supervised learning framework for the representation
   learning of molecular graphs, consisting of a novel graph transformer architecture,
   LiGhT, and a knowledge-guided pre-training strategy.
-Mode: ''
-Task: []
-Input: []
-Input Shape: ''
-Output: []
-Output Type: []
-Output Shape: ''
-Interpretation: ''
+Mode: 'Pretrained'
+Task: 'Representation'
+Input: 'Compound'
+Input Shape: 'Single'
+Output: 'Descriptor'
+Output Type: 'Float'
+Output Shape: 'List'
+Interpretation: 'Knowledge-driven embedding'
 Tag:
 - Descriptor
 Publication: https://www.nature.com/articles/s41467-023-43214-1

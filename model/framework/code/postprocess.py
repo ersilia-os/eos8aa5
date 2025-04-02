@@ -11,7 +11,7 @@ data = np.load(embeddings_file)
 X = data["fps"]
 
 col_idxs = [i for i in range(X.shape[1])]
-col_names = ["dimension_{0}".format(str(idx).zfill(4)) for idx in col_idxs]
+col_names = ["dim_{0}".format(str(idx).zfill(4)) for idx in col_idxs]
 
 with open(output_file, "w") as f:
     writer = csv.writer(f)

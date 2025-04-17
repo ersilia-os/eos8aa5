@@ -1,21 +1,42 @@
-Identifier: eos8aa5
-Slug: kgpgt-embedding
-Status: In progress
-Title: Knowledge-guided pre-trained graph transformer
-Description: Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
+Biomedical Area:
+- Any
+Contributor: miquelduranfrigola
+Deployment:
+- Local
+Description: 'Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
   This model reprsents a novel self-supervised learning framework for the representation
   learning of molecular graphs, consisting of a novel graph transformer architecture,
   LiGhT, and a knowledge-guided pre-training strategy.
-Mode: 'Pretrained'
-Task: 'Representation'
-Input: 'Compound'
-Input Shape: 'Single'
-Output: 'Descriptor'
-Output Type: 'Float'
-Output Shape: 'List'
-Interpretation: 'Knowledge-driven embedding'
+
+  '
+Docker Architecture:
+- AMD64
+DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
+Identifier: eos8aa5
+Incorporation Date: '2024-12-17'
+Input:
+- Compound
+Input Dimension: 1
+Input Shape: Single
+Interpretation: Knowledge-driven embedding
+License: Apache-2.0
+Output:
+- Value
+Output Consistency: Fixed
+Output Dimension: 2304
+Publication: https://www.nature.com/articles/s41467-023-43214-1
+Publication Type: Peer reviewed
+Publication Year: 2024
+S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
+Slug: kgpgt-embedding
+Source: Local
+Source Code: https://github.com/lihan97/KPGT
+Source Type: External
+Status: In progress
+Subtask: Featurization
 Tag:
 - Descriptor
-Publication: https://www.nature.com/articles/s41467-023-43214-1
-Source Code: https://github.com/lihan97/KPGT
-License: Apache-2.0
+Target Organism:
+- Not Applicable
+Task: Representation
+Title: Knowledge-guided pre-trained graph transformer

@@ -1,42 +1,40 @@
-Biomedical Area:
-- Any
-Contributor: miquelduranfrigola
-Deployment:
-- Local
-Description: 'Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
+Identifier: eos8aa5
+Slug: kgpgt-embedding
+Status: In progress
+Title: Knowledge-guided pre-trained graph transformer
+Description: Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
   This model reprsents a novel self-supervised learning framework for the representation
   learning of molecular graphs, consisting of a novel graph transformer architecture,
   LiGhT, and a knowledge-guided pre-training strategy.
-
-  '
-Docker Architecture:
-- AMD64
-DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
-Identifier: eos8aa5
-Incorporation Date: '2024-12-17'
+Deployment:
+  - Local
+Source: Local
+Source Type: External
+Task: Representation
+Subtask: Featurization
 Input:
-- Compound
+  - Compound
 Input Dimension: 1
 Input Shape: Single
-Interpretation: Knowledge-driven embedding
-License: Apache-2.0
 Output:
-- Value
-Output Consistency: Fixed
+  - Value
 Output Dimension: 2304
-Publication: https://www.nature.com/articles/s41467-023-43214-1
+Output Consistency: Fixed
+Interpretation: Knowledge-driven embedding
+Tag:
+  - Descriptor
+Biomedical Area:
+  - Any
+Target Organism:
+  - Not Applicable
 Publication Type: Peer reviewed
 Publication Year: 2024
-S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
-Slug: kgpgt-embedding
-Source: Local
+Publication: https://www.nature.com/articles/s41467-023-43214-1
 Source Code: https://github.com/lihan97/KPGT
-Source Type: External
-Status: In progress
-Subtask: Featurization
-Tag:
-- Descriptor
-Target Organism:
-- Not Applicable
-Task: Representation
-Title: Knowledge-guided pre-trained graph transformer
+License: Apache-2.0
+Contributor: miquelduranfrigola
+Incorporation Date: '2024-12-17'
+S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
+DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
+Docker Architecture:
+  - AMD64

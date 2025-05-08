@@ -38,3 +38,5 @@ S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
 DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
 Docker Architecture:
   - AMD64
+Model Size: 855.0
+Environment Size: 2428.0

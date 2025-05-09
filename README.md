@@ -44,13 +44,18 @@ _10 of 2304 columns are shown_
 - **Source:** `Local`
 - **Source Type:** `External`
 - **DockerHub**: [https://hub.docker.com/r/ersiliaos/eos8aa5](https://hub.docker.com/r/ersiliaos/eos8aa5)
-- **Docker Architecture:** `AMD64`
+- **Docker Architecture:** `AMD64`, `ARM64`
 - **S3 Storage**: [https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip](https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip)
 
 ### Resource Consumption
 - **Model Size (Mb):** `428`
 - **Environment Size (Mb):** `2428`
+- **Image Size (Mb):** `2996.58`
 
+**Computational Performance (seconds):**
+- 10 inputs: `58.8`
+- 100 inputs: `189.01`
+- 10000 inputs: `-1`
 
 ### References
 - **Source Code**: [https://github.com/lihan97/KPGT](https://github.com/lihan97/KPGT)

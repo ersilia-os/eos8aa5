@@ -1,6 +1,6 @@
 Identifier: eos8aa5
 Slug: kgpgt-embedding
-Status: In progress
+Status: Ready
 Title: Knowledge-guided pre-trained graph transformer
 Description: Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
   This model reprsents a novel self-supervised learning framework for the representation
@@ -38,5 +38,12 @@ S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
 DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
 Docker Architecture:
   - AMD64
+  - ARM64
 Model Size: 428.0
 Environment Size: 2428.0
+Image Size: 2996.58
+Computational Performance 1: 58.8
+Computational Performance 2: 73.55
+Computational Performance 3: 189.01
+Computational Performance 4: 1761.57
+Computational Performance 5: -1.0

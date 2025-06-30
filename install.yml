@@ -7,3 +7,4 @@ commands:
     - ['pip', 'dgllife', '0.2.9']
     - ['pip', 'rdkit', '2022.3.3']
     - ['pip', 'pandas-flavor', '0.2.0']
+    - ['pip', numpy, '1.23.0']

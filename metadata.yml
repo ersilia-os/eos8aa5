@@ -2,10 +2,11 @@ Identifier: eos8aa5
 Slug: kgpgt-embedding
 Status: Ready
 Title: Knowledge-guided pre-trained graph transformer
-Description: Neural fingerprints (embeddings) based on a knowledge-guided graph transformer.
-  This model reprsents a novel self-supervised learning framework for the representation
-  learning of molecular graphs, consisting of a novel graph transformer architecture,
-  LiGhT, and a knowledge-guided pre-training strategy.
+Description: Neural fingerprints (embeddings) based on a knowledge-guided graph 
+  transformer. This model reprsents a novel self-supervised learning framework 
+  for the representation learning of molecular graphs, consisting of a novel 
+  graph transformer architecture, LiGhT, and a knowledge-guided pre-training 
+  strategy.
 Deployment:
   - Local
 Source: Local

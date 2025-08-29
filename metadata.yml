@@ -34,6 +34,8 @@ Source Code: https://github.com/lihan97/KPGT
 License: Apache-2.0
 Contributor: miquelduranfrigola
 Incorporation Date: '2024-12-17'
+Last Packaging Date: '2025-08-29'
+Release: v1.0.0
 S3: https://ersilia-models-zipped.s3.eu-central-1.amazonaws.com/eos8aa5.zip
 DockerHub: https://hub.docker.com/r/ersiliaos/eos8aa5
 Docker Architecture:
@@ -41,10 +43,10 @@ Docker Architecture:
   - ARM64
 Model Size: 428.0
 Environment Size: 2474.0
-Image Size: 2112.41
-Computational Performance 1: 35.06
-Computational Performance 2: 33.2
-Computational Performance 3: 71.18
-Computational Performance 4: 571.2
+Image Size: 2112.5
+Computational Performance 1: 35.74
+Computational Performance 2: 33.85
+Computational Performance 3: 71.35
+Computational Performance 4: 573.48
 Computational Performance 5: -1.0
 Input Shape: Single

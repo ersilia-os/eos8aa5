@@ -4,6 +4,7 @@ Neural fingerprints (embeddings) based on a knowledge-guided graph transformer. 
 
 This model was incorporated on 2024-12-17.
 
+
 ## Information
 ### Identifiers
 - **Ersilia Identifier:** `eos8aa5`
@@ -13,7 +14,7 @@ This model was incorporated on 2024-12-17.
 - **Task:** `Representation`
 - **Subtask:** `Featurization`
 - **Biomedical Area:** `Any`
-- **Target Organism:** `Not Applicable`
+- **Target Organism:** `Any`
 - **Tags:** `Descriptor`
 
 ### Input

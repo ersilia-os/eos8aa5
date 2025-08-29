@@ -16,7 +16,6 @@ Subtask: Featurization
 Input:
   - Compound
 Input Dimension: 1
-Input Shape: Single
 Output:
   - Value
 Output Dimension: 2304
@@ -48,3 +47,4 @@ Computational Performance 2: 33.2
 Computational Performance 3: 71.18
 Computational Performance 4: 571.2
 Computational Performance 5: -1.0
+Input Shape: Single

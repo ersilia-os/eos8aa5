@@ -21,8 +21,8 @@ class MoleculeDataset(Dataset):
             use_idxs = np.load(split_path, allow_pickle=True)[SPLIT_TO_ID[split]]
         else: 
             use_idxs = np.arange(0, len(df))
-        fps = torch.from_numpy(sps.load_npz(ecfp_path).todense().astype(np.float32))
-        mds = np.load(md_path)['md'].astype(np.float32)
+        fps = torch.from_numpy(sps.load_npz(ecfp_path).todense().astype("float"))
+        mds = np.load(md_path)['md'].astype("float")
         mds = torch.from_numpy(np.where(np.isnan(mds), 0, mds))
         self.df, self.fps, self.mds = df.iloc[use_idxs], fps[use_idxs], mds[use_idxs]
         self.smiless = self.df['smiles'].tolist()
@@ -59,7 +59,7 @@ class MoleculeDataset(Dataset):
         task_pos_weights = torch.ones(self.labels.shape[1])
         num_pos = torch.sum(torch.nan_to_num(self.labels,nan=0), axis=0)
         masks = F.zerocopy_from_numpy(
-            (~np.isnan(self.labels.numpy())).astype(np.float32))
+            (~np.isnan(self.labels.numpy())).astype("float"))
         num_indices = torch.sum(masks, axis=0)
         task_pos_weights[num_pos > 0] = ((num_indices - num_pos) / num_pos)[num_pos > 0]
         return task_pos_weights

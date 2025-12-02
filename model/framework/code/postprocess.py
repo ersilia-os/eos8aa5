@@ -23,7 +23,7 @@ def write_out_csv(results, header, file):
       writer.writerow(r)
 
 def write_out_bin(results, header, file):
-  arr = np.asarray(results, dtype=np.float32)
+  arr = np.asarray(results, dtype=float)
   meta = {"columns": header, "shape": arr.shape, "dtype": "float32"}
   meta_bytes = (json.dumps(meta) + "\n").encode("utf-8")
   with open(file, "wb") as f:

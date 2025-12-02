@@ -42,7 +42,7 @@ def preprocess_dataset(args):
             valid_graphs.append(g)
     _label_values = df[task_names].values
     labels = F.zerocopy_from_numpy(
-        _label_values.astype(np.float32))[valid_ids]
+        _label_values.astype("float"))[valid_ids]
     print('saving graphs')
     save_graphs(cache_file_path, valid_graphs,
                 labels={'labels': labels})

@@ -26,8 +26,11 @@ def parse_args():
 def preprocess_dataset(args):
     df = pd.read_csv(f"{args.data_path}/{args.dataset}/{args.dataset}.csv")
     cache_file_path = f"{args.data_path}/{args.dataset}/{args.dataset}_{args.path_length}.pkl"
+    print(df)
     smiless = df.smiles.values.tolist()
+    print(smiless)
     task_names = df.columns.drop(['smiles']).tolist()
+    print(task_names)
     print('constructing graphs')
     graphs = pmap(smiles_to_graph_tune,
                                    smiless,
@@ -41,11 +44,11 @@ def preprocess_dataset(args):
             valid_ids.append(i)
             valid_graphs.append(g)
     _label_values = df[task_names].values
+    print(_label_values)
     labels = F.zerocopy_from_numpy(
         _label_values.astype("float"))[valid_ids]
     print('saving graphs')
-    save_graphs(cache_file_path, valid_graphs,
-                labels={'labels': labels})
+    save_graphs(cache_file_path, valid_graphs)
 
     print('extracting fingerprints')
     FP_list = []
@@ -55,12 +58,14 @@ def preprocess_dataset(args):
     FP_arr = np.array(FP_list)
     FP_sp_mat = sp.csc_matrix(FP_arr)
     print('saving fingerprints')
+    print(FP_sp_mat)
     sp.save_npz(f"{args.data_path}/{args.dataset}/rdkfp1-7_512.npz", FP_sp_mat)
 
     print('extracting molecular descriptors')
     generator = RDKit2DNormalized()
     features_map = Pool(args.n_jobs).imap(generator.process, smiless)
     arr = np.array(list(features_map))
+    print(arr)
     np.savez_compressed(f"{args.data_path}/{args.dataset}/molecular_descriptors.npz",md=arr[:,1:])
 
 if __name__ == '__main__':

@@ -1,68 +1,61 @@
-import sys
-sys.path.append("..")
-
-import pandas as pd
 import numpy as np
 from multiprocessing import Pool
-import dgl.backend as F
-from dgl.data.utils import save_graphs
 from dgllife.utils.io import pmap
 from rdkit import Chem
-from scipy import sparse as sp
-import argparse 
-
+# Note: We use Chem.RDKFingerprint to match the original script exactly.
+# even though the inference script calls the variable 'ecfp'.
 from src.data.featurizer import smiles_to_graph_tune
 from src.data.descriptors.rdNormalizedDescriptors import RDKit2DNormalized
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Arguments")
-    parser.add_argument("--data_path", type=str, required=True)
-    parser.add_argument("--dataset", type=str, required=True)
-    parser.add_argument("--path_length", type=int, default=5)
-    parser.add_argument("--n_jobs", type=int, default=32)
-    args = parser.parse_args()
-    return args
-
-def preprocess_dataset(args):
-    df = pd.read_csv(f"{args.data_path}/{args.dataset}/{args.dataset}.csv")
-    cache_file_path = f"{args.data_path}/{args.dataset}/{args.dataset}_{args.path_length}.pkl"
-    smiless = df.smiles.values.tolist()
-    task_names = df.columns.drop(['smiles']).tolist()
-    print('constructing graphs')
+def extract_features_from_smiles(smiles_list, n_jobs=16, path_length=5):
+    """
+    Refactored to match original logic exactly:
+    - Uses RDKit Topological Fingerprints (not Morgan/ECFP).
+    - Returns valid indices for mapping.
+    """
+    
+    # 1. Graph Construction
+    print('Constructing graphs')
     graphs = pmap(smiles_to_graph_tune,
-                                   smiless,
-                                   max_length=args.path_length,
-                                   n_virtual_nodes=2,
-                                   n_jobs=args.n_jobs)
-    valid_ids = []
-    valid_graphs = []
-    for i, g in enumerate(graphs):
-        if g is not None:
-            valid_ids.append(i)
-            valid_graphs.append(g)
-    _label_values = df[task_names].values
-    labels = F.zerocopy_from_numpy(
-        _label_values.astype("float"))[valid_ids]
-    print('saving graphs')
-    save_graphs(cache_file_path, valid_graphs,
-                labels={'labels': labels})
-
-    print('extracting fingerprints')
+                  smiles_list,
+                  max_length=path_length,
+                  n_virtual_nodes=2,
+                  n_jobs=n_jobs)
+    
+    # Filter valid graphs
+    valid_graphs = [g for g in graphs if g is not None]
+    valid_indices = [i for i, g in enumerate(graphs) if g is not None]
+    
+    # 2. Fingerprint Extraction (RDKit Topological)
+    # The original script used Chem.RDKFingerprint, so we must use it too.
+    print('Extracting fingerprints (RDKit Topological)')
     FP_list = []
-    for smiles in smiless:
+    
+    for smiles in smiles_list:
         mol = Chem.MolFromSmiles(smiles)
-        FP_list.append(list(Chem.RDKFingerprint(mol, minPath=1, maxPath=7, fpSize=512)))
-    FP_arr = np.array(FP_list)
-    FP_sp_mat = sp.csc_matrix(FP_arr)
-    print('saving fingerprints')
-    sp.save_npz(f"{args.data_path}/{args.dataset}/rdkfp1-7_512.npz", FP_sp_mat)
-
-    print('extracting molecular descriptors')
+        if mol is not None:
+            # MATCHING ORIGINAL EXACTLY: minPath=1, maxPath=7, fpSize=512
+            fp = list(Chem.RDKFingerprint(mol, minPath=1, maxPath=7, fpSize=512))
+        else:
+            fp = [0] * 512
+        FP_list.append(fp)
+        
+    # Although the inference script calls this 'ecfp', it contains RDKit fingerprints.
+    # We convert to float32 as Torch expects floats.
+    FP_arr = np.array(FP_list, dtype=np.float32)
+    
+    # 3. Molecular Descriptors Extraction
+    print('Extracting molecular descriptors')
     generator = RDKit2DNormalized()
-    features_map = Pool(args.n_jobs).imap(generator.process, smiless)
-    arr = np.array(list(features_map))
-    np.savez_compressed(f"{args.data_path}/{args.dataset}/molecular_descriptors.npz",md=arr[:,1:])
-
-if __name__ == '__main__':
-    args = parse_args()
-    preprocess_dataset(args)
+    features_map = Pool(n_jobs).imap(generator.process, list(smiles_list))
+    
+    md_arr = np.array(list(features_map))
+    # Remove first column (SMILES string)
+    molecular_descriptors = md_arr[:, 1:].astype(np.float32)
+    
+    return {
+        'graphs': valid_graphs,
+        'ecfp': FP_arr[valid_indices], # Passing RDKit FPs as 'ecfp'
+        'descriptors': molecular_descriptors[valid_indices],
+        'valid_indices': valid_indices
+    }

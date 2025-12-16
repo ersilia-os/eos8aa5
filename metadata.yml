@@ -44,9 +44,9 @@ Docker Architecture:
 Model Size: 428.0
 Environment Size: 5873.0
 Image Size: 6334.61
-Computational Performance 1: 33.84
-Computational Performance 2: 33.43
-Computational Performance 3: 57.14
-Computational Performance 4: 416.9
-Computational Performance 5: -1.0
+Computational Performance 1: 33.85
+Computational Performance 2: 32.27
+Computational Performance 3: 43.04
+Computational Performance 4: 280.41
+Computational Performance 5: 1346.59
 Input Shape: Single

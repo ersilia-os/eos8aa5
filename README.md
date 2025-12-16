@@ -53,9 +53,9 @@ _10 of 2304 columns are shown_
 - **Image Size (Mb):** `6334.61`
 
 **Computational Performance (seconds):**
-- 10 inputs: `33.84`
-- 100 inputs: `57.14`
-- 10000 inputs: `-1`
+- 10 inputs: `33.85`
+- 100 inputs: `43.04`
+- 10000 inputs: `1346.59`
 
 ### References
 - **Source Code**: [https://github.com/lihan97/KPGT](https://github.com/lihan97/KPGT)

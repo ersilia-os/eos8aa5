@@ -7,7 +7,7 @@ commands:
     - ["pip", "torchdata", "0.7.1"]
     - ['conda', 'install', '-c', 'dglteam', 'dgl=2.0.0', '-y']
     - ['pip', 'dgllife', '0.2.9']
-    - ['pip', 'rdkit', '2022.3.3']
+    - ['pip', 'rdkit', '2024.3.5']
     - ['pip', 'pandas-flavor', '0.2.0']
     - ['pip', 'numpy', '1.23.0']
     - ['pip', 'ersilia-pack-utils', '0.1.3']

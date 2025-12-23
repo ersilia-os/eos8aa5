@@ -100,4 +100,4 @@ assert input_len == output_len, f"Input length ({input_len}) must equal output l
 headers = ["dim_{0}".format(str(i).zfill(4)) for i in range(outputs.shape[1])]
 
 # 5. Write the final output
-write_out(outputs, headers, output_file, dtype='float32')
+write_out(outputs, headers, output_file, dtype=np.float32)

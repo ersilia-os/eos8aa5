@@ -77,6 +77,12 @@ def run_light_inference(config_name, model_path, graphs, ecfp_array, md_array):
         for batch_idx, batched_data in enumerate(loader):
             # Unpack exactly as original script
             (_, g, ecfp, md, labels) = batched_data
+            mx_n = 0
+            mx_e = 0
+            # for g in graphs[:100]:
+            #     mx_n = max(mx_n, g.num_nodes())
+            #     mx_e = max(mx_e, g.num_edges())
+            # print("max_nodes", mx_n, "max_edges", mx_e)
             
             ecfp = ecfp.to(device)
             md = md.to(device)

@@ -1,103 +1,184 @@
 import os
-import csv
 import sys
 import numpy as np
-from rdkit import Chem
-from rdkit.Chem import AllChem
-import torch 
+import torch
+from rdkit import Chem, DataStructs
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
-# --- Model Configuration Imports ---
-from src.model_config import config_dict 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Utility Imports
-from ersilia_pack_utils.core import write_out, read_smiles
+from src.model_config import config_dict
+from src.data.featurizer import smiles_to_graph_tune
+from src.data.descriptors.rdNormalizedDescriptors import RDKit2DNormalized
+from ersilia_pack_utils.core import read_smiles, write_out
 
-# Import the refactored functions
-from scripts.preprocess_downstream_dataset import extract_features_from_smiles
-from scripts.extract_features import run_light_inference 
+CONFIG_NAME = "base"
+CFG = config_dict[CONFIG_NAME]
 
-# --- Configuration and Path Setup ---
+D_FP = 512
+D_MD = 200
+PATH_LEN = CFG["path_length"]
+N_VIRTUAL_NODES = 2
 
-if len(sys.argv) < 3:
-    print("Usage: python main.py <input_file_path> <output_file_path>")
-    sys.exit(1)
-
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-
-CONFIG_NAME = 'base' 
-CONFIG = config_dict[CONFIG_NAME] 
-CHECKPOINT_PATH = os.path.join(project_root, 'checkpoints', 'pretrained', CONFIG_NAME, f'{CONFIG_NAME}.pth')
+OUT_DIM = CFG["d_g_feats"] * 3
+N_WORKERS = 16#max(1, (os.cpu_count() or 4) // 2)
 
 input_file = sys.argv[1]
 output_file = sys.argv[2]
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ------------------------------------
+root = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(root, "..", ".."))
+TS_PATH = os.path.join(project_root, "checkpoints", "pretrained", CONFIG_NAME, "light.ts.pt")
 
-def my_model(smiles_list):
-    """
-    1. Extracts all necessary features using the imported featurization function.
-    2. Runs LiGhT model inference using the imported inference function.
-    3. Maps the features back to the original list length.
-    """
-    
-    # Set seed for reproducibility
-    # torch.manual_seed(22)
-    np.random.seed(22)
-    
-    # --- 1. Feature Extraction ---
-    print("Starting feature extraction...")
-    feature_data = extract_features_from_smiles(smiles_list, 
-                                                n_jobs=16, 
-                                                path_length=CONFIG['path_length'])
-    
-    graphs = feature_data['graphs']
-    # CHANGE IS HERE: Use 'ecfp' key
-    ecfp_arr = feature_data['ecfp']
-    md_arr = feature_data['descriptors']
-    valid_indices = feature_data['valid_indices'] 
-    
-    # Handle case with no valid graphs
-    if not graphs:
-        print("Warning: No valid graphs were generated. Returning zero features.")
-        return np.zeros((len(smiles_list), 512), dtype=np.float32)
+device = torch.device("cpu")
 
-    # --- 2. Model Loading and Inference ---
-    print('Running LiGhT model inference...')
+_G_MODEL = None
+_G_MDGEN = None
 
-    X_valid = run_light_inference(
-        config_name=CONFIG_NAME,
-        model_path=CHECKPOINT_PATH,
-        graphs=graphs,
-        ecfp_array=ecfp_arr,
-        md_array=md_arr
-    )
-    
-    # --- 3. Map Features Back ---
-    FEATURE_DIM = X_valid.shape[1]
-    X_final = np.zeros((len(smiles_list), FEATURE_DIM), dtype=np.float32)
-    
-    X_final[valid_indices] = X_valid
-    
-    print(f"Successfully extracted and mapped {len(X_valid)} features of dimension {FEATURE_DIM} back to {len(smiles_list)} inputs.")
-    
-    return X_final
 
-# --- Execution Flow ---
+def build_incidence_fast(dst: torch.Tensor, N: int):
+    E = int(dst.numel())
+    if E == 0:
+        inc_idx = torch.full((N, 1), -1, dtype=torch.int64)
+        inc_mask = torch.zeros((N, 1), dtype=torch.bool)
+        return inc_idx, inc_mask
 
-# 1. Read input SMILES and headers
-cols, smiles_list = read_smiles(input_file)
+    edge_ids = torch.arange(E, dtype=torch.int64)
 
-# 2. Run the model
-outputs = my_model(smiles_list)
+    dst_sorted, perm = torch.sort(dst)
+    e_sorted = edge_ids[perm]
 
-# 3. Validation
-input_len = len(smiles_list)
-output_len = len(outputs)
-assert input_len == output_len, f"Input length ({input_len}) must equal output length ({output_len})"
+    counts = torch.bincount(dst, minlength=N).to(torch.int64)
+    Kmax = int(torch.max(counts).item())
+    if Kmax < 1:
+        Kmax = 1
 
-# 4. Define headers
-headers = ["dim_{0}".format(str(i).zfill(4)) for i in range(outputs.shape[1])]
+    starts = torch.cumsum(counts, dim=0) - counts
+    j = torch.arange(E, dtype=torch.int64)
+    pos_in_group = j - starts[dst_sorted]
 
-# 5. Write the final output
-write_out(outputs, headers, output_file, dtype=np.float32)
+    inc_idx = torch.full((N, Kmax), -1, dtype=torch.int64)
+    inc_mask = torch.zeros((N, Kmax), dtype=torch.bool)
+
+    inc_idx[dst_sorted, pos_in_group] = e_sorted
+    inc_mask[dst_sorted, pos_in_group] = True
+    return inc_idx, inc_mask
+
+
+def _init_worker(ts_path: str):
+    global _G_MODEL, _G_MDGEN
+
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
+
+    _G_MODEL = torch.jit.load(ts_path, map_location="cpu")
+    _G_MODEL.eval()
+
+    _G_MDGEN = RDKit2DNormalized()
+
+
+def _fp_from_smiles(smiles: str) -> np.ndarray:
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return np.zeros((D_FP,), dtype=np.float32)
+
+    bv = Chem.RDKFingerprint(mol, minPath=1, maxPath=7, fpSize=D_FP)
+    arr = np.zeros((D_FP,), dtype=np.int8)
+    DataStructs.ConvertToNumpyArray(bv, arr)  
+    return arr.astype(np.float32)
+
+
+def _md_from_smiles(smiles: str) -> np.ndarray:
+    md = _G_MDGEN.process(smiles)
+    md = np.asarray(md[1:], dtype=np.float32)
+
+    if md.shape[0] < D_MD:
+        out = np.zeros((D_MD,), dtype=np.float32)
+        out[: md.shape[0]] = md
+        return out
+    return md[:D_MD].astype(np.float32, copy=False)
+
+
+def featurize_and_infer(idx_smiles):
+    global _G_MODEL, _G_MDGEN
+    idx, smiles = idx_smiles
+
+    try:
+        g = smiles_to_graph_tune(smiles, max_length=PATH_LEN, n_virtual_nodes=N_VIRTUAL_NODES)
+        if g is None:
+            return idx, None
+
+        begin_end = g.ndata["begin_end"].to(dtype=torch.float32, device="cpu")
+        edge = g.ndata["edge"].to(dtype=torch.float32, device="cpu")
+        vavn = g.ndata["vavn"].to(dtype=torch.int64, device="cpu")
+
+        src, dst = g.edges()
+        src = src.to(dtype=torch.int64, device="cpu")
+        dst = dst.to(dtype=torch.int64, device="cpu")
+
+        path = g.edata["path"].to(dtype=torch.int64, device="cpu")
+        vp = g.edata["vp"].to(dtype=torch.bool, device="cpu")
+        sl = g.edata["sl"].to(dtype=torch.bool, device="cpu")
+
+        Nn = int(begin_end.shape[0])
+        Ee = int(src.shape[0])
+
+        mask_nodes = torch.ones((Nn,), dtype=torch.bool)
+        mask_edges = torch.ones((Ee,), dtype=torch.bool)
+
+        inc_idx, inc_mask = build_incidence_fast(dst, Nn)
+
+        fp = torch.from_numpy(_fp_from_smiles(smiles)).to(dtype=torch.float32)
+        md = torch.from_numpy(_md_from_smiles(smiles)).to(dtype=torch.float32)
+
+        with torch.no_grad():
+            y = _G_MODEL(
+                begin_end, edge, vavn, mask_nodes,
+                src, dst, path, vp, sl, mask_edges,
+                inc_idx, inc_mask,
+                fp, md
+            )
+
+        return idx, y.detach().cpu().numpy().astype(np.float32, copy=False)
+
+    except Exception:
+        return idx, None
+
+
+def main():
+    _, smiles_list = read_smiles(input_file)
+    smiles_list = list(smiles_list)
+    n = len(smiles_list)
+
+    outs = np.zeros((n, OUT_DIM), dtype=np.float32)
+    bad = 0
+    failed = []
+
+    print(f"Parallel featurize+infer: n={n} workers={N_WORKERS}")
+    with ProcessPoolExecutor(
+        max_workers=N_WORKERS,
+        initializer=_init_worker,
+        initargs=(TS_PATH,),
+    ) as ex:
+        futures = [ex.submit(featurize_and_infer, (i, s)) for i, s in enumerate(smiles_list)]
+        for fut in as_completed(futures):
+            idx, y = fut.result()
+            if y is None:
+                bad += 1
+                if len(failed) < 10:
+                    failed.append(smiles_list[idx])
+            else:
+                outs[idx] = y
+
+    headers = [f"dim_{str(j).zfill(4)}" for j in range(outs.shape[1])]
+    write_out(outs, headers, output_file, dtype=np.float32)
+
+    print(f"Done. inputs={n} outputs={outs.shape[0]} bad={bad}")
+    if bad:
+        print("Examples (up to 10):")
+        for x in failed[:10]:
+            print("  ", x)
+
+
+if __name__ == "__main__":
+    main()

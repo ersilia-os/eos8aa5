@@ -59,7 +59,7 @@ _10 of 2304 columns are shown_
 
 ### References
 - **Source Code**: [https://github.com/lihan97/KPGT](https://github.com/lihan97/KPGT)
-- **Publication**: [https://www.nature.com/articles/s41467-023-43214-1](https://www.nature.com/articles/s41467-023-43214-1)
+- **Publication**: [https://doi.org/10.1038/s41467-023-43214-1](https://doi.org/10.1038/s41467-023-43214-1)
 - **Publication Type:** `Peer reviewed`
 - **Publication Year:** `2024`
 - **Ersilia Contributor:** [miquelduranfrigola](https://github.com/miquelduranfrigola)

@@ -170,7 +170,7 @@ def main():
             else:
                 outs[idx] = y
 
-    headers = [f"dim_{str(j).zfill(4)}" for j in range(outs.shape[1])]
+    headers = [f"feat_{str(j).zfill(4)}" for j in range(outs.shape[1])]
     write_out(outs, headers, output_file, dtype=np.float32)
 
     print(f"Done. inputs={n} outputs={outs.shape[0]} bad={bad}")

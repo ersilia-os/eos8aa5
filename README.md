@@ -28,16 +28,16 @@ This model was incorporated on 2024-12-17.Last packaged on 2026-02-11.
 Below are the **Output Columns** of the model:
 | Name | Type | Direction | Description |
 |------|------|-----------|-------------|
-| dim_0000 | float |  | Encoding dim index 0 of the embedding |
-| dim_0001 | float |  | Encoding dim index 1 of the embedding |
-| dim_0002 | float |  | Encoding dim index 2 of the embedding |
-| dim_0003 | float |  | Encoding dim index 3 of the embedding |
-| dim_0004 | float |  | Encoding dim index 4 of the embedding |
-| dim_0005 | float |  | Encoding dim index 5 of the embedding |
-| dim_0006 | float |  | Encoding dim index 6 of the embedding |
-| dim_0007 | float |  | Encoding dim index 7 of the embedding |
-| dim_0008 | float |  | Encoding dim index 8 of the embedding |
-| dim_0009 | float |  | Encoding dim index 9 of the embedding |
+| feat_0000 | float |  | Encoding feat index 0 of the embedding |
+| feat_0001 | float |  | Encoding feat index 1 of the embedding |
+| feat_0002 | float |  | Encoding feat index 2 of the embedding |
+| feat_0003 | float |  | Encoding feat index 3 of the embedding |
+| feat_0004 | float |  | Encoding feat index 4 of the embedding |
+| feat_0005 | float |  | Encoding feat index 5 of the embedding |
+| feat_0006 | float |  | Encoding feat index 6 of the embedding |
+| feat_0007 | float |  | Encoding feat index 7 of the embedding |
+| feat_0008 | float |  | Encoding feat index 8 of the embedding |
+| feat_0009 | float |  | Encoding feat index 9 of the embedding |
 
 _10 of 2304 columns are shown_
 ### Source and Deployment

@@ -2,7 +2,7 @@
 
 Neural fingerprints (embeddings) based on a knowledge-guided graph transformer. This model reprsents a novel self-supervised learning framework for the representation learning of molecular graphs, consisting of a novel graph transformer architecture, LiGhT, and a knowledge-guided pre-training strategy.
 
-This model was incorporated on 2024-12-17.Last packaged on 2026-02-11.
+This model was incorporated on 2024-12-17.Last packaged on 2026-08-31.
 
 ## Information
 ### Identifiers
@@ -50,12 +50,12 @@ _10 of 2304 columns are shown_
 ### Resource Consumption
 - **Model Size (Mb):** `344`
 - **Environment Size (Mb):** `1612`
-- **Image Size (Mb):** `1983.28`
+- **Image Size (Mb):** `1979.4`
 
 **Computational Performance (seconds):**
-- 10 inputs: `31.68`
-- 100 inputs: `32.47`
-- 10000 inputs: `753.12`
+- 10 inputs: `29.44`
+- 100 inputs: `29.28`
+- 10000 inputs: `764.67`
 
 ### References
 - **Source Code**: [https://github.com/lihan97/KPGT](https://github.com/lihan97/KPGT)

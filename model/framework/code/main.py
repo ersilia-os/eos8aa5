@@ -150,7 +150,7 @@ def main():
     smiles_list = list(smiles_list)
     n = len(smiles_list)
 
-    outs = np.zeros((n, OUT_DIM), dtype=np.float32)
+    outs = np.full((n, OUT_DIM), np.nan, dtype=np.float32)
     bad = 0
     failed = []
 

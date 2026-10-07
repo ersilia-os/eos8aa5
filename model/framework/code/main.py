@@ -150,7 +150,7 @@ def main():
     smiles_list = list(smiles_list)
     n = len(smiles_list)
 
-    outs = np.zeros((n, OUT_DIM), dtype=np.float32)
+    outs = np.full((n, OUT_DIM), np.nan, dtype=np.float32)
     bad = 0
     failed = []
 
@@ -171,7 +171,12 @@ def main():
                 outs[idx] = y
 
     headers = [f"feat_{str(j).zfill(4)}" for j in range(outs.shape[1])]
-    write_out(outs, headers, output_file, dtype=np.float32)
+    if output_file.endswith(".csv"):
+        # failed rows are written as empty cells, not the string "nan"
+        rows = [[None if np.isnan(v) else v for v in row] for row in outs]
+        write_out(rows, headers, output_file, dtype=np.float32)
+    else:
+        write_out(outs, headers, output_file, dtype=np.float32)
 
     print(f"Done. inputs={n} outputs={outs.shape[0]} bad={bad}")
     if bad:

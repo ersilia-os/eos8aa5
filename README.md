@@ -1,6 +1,6 @@
 # Knowledge-guided pre-trained graph transformer
 
-Encodes a molecule into 2,304 features using KPGT, a graph transformer pretrained with chemical knowledge folded into the objective rather than learned from structure alone. The authors had the model predict molecular descriptors and fingerprints during pretraining, so that established chemical understanding guides representation learning instead of leaving the network to rediscover it. The embedding transfers across property prediction tasks, and its dimensions are not individually interpretable.
+Encodes a molecule into 2,304 features with KPGT, whose backbone treats the molecular line graph so that bonds become nodes and a transformer can attend across the whole structure. Li and colleagues pretrained it on about two million ChEMBL compounds using a masked-graph objective augmented with a knowledge node carrying molecular descriptors and fingerprints, so established chemistry guides the representation instead of the network rediscovering it. The embedding transferred across 63 property prediction datasets, and its individual dimensions carry no separate meaning.
 
 This model was incorporated on 2024-12-17.Last packaged on 2026-08-31.
 

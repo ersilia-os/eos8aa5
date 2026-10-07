@@ -2,7 +2,7 @@
 
 Encodes a molecule into 2,304 features with KPGT, whose backbone treats the molecular line graph so that bonds become nodes and a transformer can attend across the whole structure. Li and colleagues pretrained it on about two million ChEMBL compounds using a masked-graph objective augmented with a knowledge node carrying molecular descriptors and fingerprints, so established chemistry guides the representation instead of the network rediscovering it. The embedding transferred across 63 property prediction datasets, and its individual dimensions carry no separate meaning.
 
-This model was incorporated on 2024-12-17.Last packaged on 2026-08-31.
+This model was incorporated on 2024-12-17.Last packaged on 2026-10-07.
 
 ## Information
 ### Identifiers
@@ -50,12 +50,12 @@ _10 of 2304 columns are shown_
 ### Resource Consumption
 - **Model Size (Mb):** `344`
 - **Environment Size (Mb):** `1611`
-- **Image Size (Mb):** `1979.4`
+- **Image Size (Mb):** `1982.44`
 
 **Computational Performance (seconds):**
-- 10 inputs: `29.44`
-- 100 inputs: `29.28`
-- 10000 inputs: `764.67`
+- 10 inputs: `28.5`
+- 100 inputs: `28.79`
+- 10000 inputs: `784.25`
 
 ### References
 - **Source Code**: [https://github.com/lihan97/KPGT](https://github.com/lihan97/KPGT)

@@ -1,9 +1,11 @@
 import os
 import sys
+import multiprocessing as mp
 import numpy as np
 import torch
 from rdkit import Chem, DataStructs
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -21,7 +23,12 @@ PATH_LEN = CFG["path_length"]
 N_VIRTUAL_NODES = 2
 
 OUT_DIM = CFG["d_g_feats"] * 3
-N_WORKERS = 16#max(1, (os.cpu_count() or 4) // 2)
+
+# memory budget per worker on top of the shared model weights (graph, descriptors, activations)
+MEM_PER_WORKER = 600 * 1024 ** 2
+MAX_WORKERS = 16
+# molecules per pool; workers are recreated after each batch so their memory cannot keep growing
+BATCH_SIZE = 1000
 
 input_file = sys.argv[1]
 output_file = sys.argv[2]
@@ -65,8 +72,35 @@ def build_incidence_fast(dst: torch.Tensor, N: int):
     return inc_idx, inc_mask
 
 
-def _init_worker(ts_path: str):
-    global _G_MODEL, _G_MDGEN
+def _available_memory() -> int:
+    # container limit (cgroup v2, then v1) minus current usage, else MemAvailable of the host/VM
+    for limit_file, usage_file in [
+        ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory.current"),
+        ("/sys/fs/cgroup/memory/memory.limit_in_bytes", "/sys/fs/cgroup/memory/memory.usage_in_bytes"),
+    ]:
+        try:
+            limit = open(limit_file).read().strip()
+            usage = int(open(usage_file).read().strip())
+            if limit != "max" and int(limit) < 2 ** 60:
+                return int(limit) - usage
+        except (OSError, ValueError):
+            pass
+    with open("/proc/meminfo") as f:
+        for line in f:
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) * 1024
+    return MEM_PER_WORKER
+
+
+def _n_workers() -> int:
+    n_cpu = len(os.sched_getaffinity(0))
+    n_mem = _available_memory() // MEM_PER_WORKER
+    return int(max(1, min(n_cpu, n_mem, MAX_WORKERS)))
+
+
+def _load_model(ts_path: str):
+    # loaded once in the parent: forked workers share the 358 MB of weights copy-on-write
+    global _G_MODEL
 
     torch.set_num_threads(1)
     torch.set_num_interop_threads(1)
@@ -74,6 +108,11 @@ def _init_worker(ts_path: str):
     _G_MODEL = torch.jit.load(ts_path, map_location="cpu")
     _G_MODEL.eval()
 
+
+def _init_worker():
+    global _G_MDGEN
+
+    torch.set_num_threads(1)
     _G_MDGEN = RDKit2DNormalized()
 
 
@@ -154,21 +193,32 @@ def main():
     bad = 0
     failed = []
 
-    print(f"Parallel featurize+infer: n={n} workers={N_WORKERS}")
-    with ProcessPoolExecutor(
-        max_workers=N_WORKERS,
-        initializer=_init_worker,
-        initargs=(TS_PATH,),
-    ) as ex:
-        futures = [ex.submit(featurize_and_infer, (i, s)) for i, s in enumerate(smiles_list)]
-        for fut in as_completed(futures):
-            idx, y = fut.result()
+    _load_model(TS_PATH)
+    n_workers = _n_workers()
+    ctx = mp.get_context("fork")
+
+    print(f"Parallel featurize+infer: n={n} workers={n_workers} batch_size={BATCH_SIZE}")
+    start = 0
+    while start < n:
+        batch = list(enumerate(smiles_list[start:start + BATCH_SIZE], start=start))
+        try:
+            with ProcessPoolExecutor(max_workers=n_workers, mp_context=ctx, initializer=_init_worker) as ex:
+                results = list(ex.map(featurize_and_infer, batch))
+        except BrokenProcessPool:
+            # a worker was killed (usually OOM): retry the same batch with half the workers
+            if n_workers == 1:
+                raise
+            n_workers = max(1, n_workers // 2)
+            print(f"Worker died, retrying batch at {start} with workers={n_workers}")
+            continue
+        for idx, y in results:
             if y is None:
                 bad += 1
                 if len(failed) < 10:
                     failed.append(smiles_list[idx])
             else:
                 outs[idx] = y
+        start += BATCH_SIZE
 
     headers = [f"feat_{str(j).zfill(4)}" for j in range(outs.shape[1])]
     if output_file.endswith(".csv"):

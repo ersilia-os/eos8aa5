@@ -130,6 +130,9 @@ def _fp_from_smiles(smiles: str) -> np.ndarray:
 def _md_from_smiles(smiles: str) -> np.ndarray:
     md = _G_MDGEN.process(smiles)
     md = np.asarray(md[1:], dtype=np.float32)
+    # as in the authors' finetune_dataset.py: descriptors that RDKit cannot
+    # compute (e.g. Gasteiger charges for Pt, Se, As) are NaN and are set to 0
+    md = np.where(np.isnan(md), 0, md).astype(np.float32)
 
     if md.shape[0] < D_MD:
         out = np.zeros((D_MD,), dtype=np.float32)

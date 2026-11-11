@@ -6,6 +6,7 @@ commands:
     - ['pip', 'torch', '1.13.1', '--index-url', 'https://download.pytorch.org/whl/cpu']
     - ["pip", "torchdata", "0.7.1", '--index-url', 'https://download.pytorch.org/whl/cpu']
     - ['conda', 'install', '-c', 'dglteam', 'dgl=2.0.0', '-y']
+    - ['conda', 'install', '-c', 'conda-forge', 'numpy=1.23.0', '-y']
     - ['pip', 'dgllife', '0.2.9']
     - ['pip', 'rdkit', '2022.3.3']
     - ['pip', 'pandas-flavor', '0.2.0']
